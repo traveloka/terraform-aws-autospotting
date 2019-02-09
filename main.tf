@@ -1,11 +1,23 @@
+module "label" {
+  source      = "git::https://github.com/cloudposse/terraform-null-label.git?ref=0.5.4"
+  context     = "${var.label_context}"
+  namespace   = "${var.label_namespace}"
+  environment = "${var.label_environment}"
+  stage       = "${var.label_stage}"
+  name        = "${var.label_name}"
+  attributes  = ["${var.label_attributes}"]
+  tags        = "${var.label_tags}"
+  delimiter   = "${var.label_delimiter}"
+}
+
 module "aws_lambda_function" {
-  source = "./lambda"
+  source = "./modules/lambda"
 
-  lambda_zipname = "${var.lambda_zipname}"
+  label_context = "${module.label.context}"
 
-  lambda_s3_bucket = "${var.lambda_s3_bucket}"
-  lambda_s3_key    = "${var.lambda_s3_key}"
-
+  lambda_zipname     = "${var.lambda_zipname}"
+  lambda_s3_bucket   = "${var.lambda_s3_bucket}"
+  lambda_s3_key      = "${var.lambda_s3_key}"
   lambda_role_arn    = "${aws_iam_role.autospotting_role.arn}"
   lambda_runtime     = "${var.lambda_runtime}"
   lambda_timeout     = "${var.lambda_timeout}"
@@ -14,6 +26,7 @@ module "aws_lambda_function" {
 
   autospotting_allowed_instance_types       = "${var.autospotting_allowed_instance_types}"
   autospotting_disallowed_instance_types    = "${var.autospotting_disallowed_instance_types}"
+  autospotting_instance_termination_method  = "${var.autospotting_instance_termination_method}"
   autospotting_min_on_demand_number         = "${var.autospotting_min_on_demand_number}"
   autospotting_min_on_demand_percentage     = "${var.autospotting_min_on_demand_percentage}"
   autospotting_on_demand_price_multiplier   = "${var.autospotting_on_demand_price_multiplier}"
@@ -26,14 +39,14 @@ module "aws_lambda_function" {
 }
 
 resource "aws_iam_role" "autospotting_role" {
-  name                  = "autospotting"
+  name                  = "${module.label.id}"
   path                  = "/lambda/"
   assume_role_policy    = "${file("${path.module}/lambda-policy.json")}"
   force_detach_policies = true
 }
 
 resource "aws_iam_role_policy" "autospotting_policy" {
-  name   = "policy_for_autospotting"
+  name   = "policy_for_${module.label.id}"
   role   = "${aws_iam_role.autospotting_role.id}"
   policy = "${file("${path.module}/autospotting-policy.json")}"
 }
@@ -53,11 +66,11 @@ resource "aws_cloudwatch_event_target" "cloudwatch_target" {
 }
 
 resource "aws_cloudwatch_event_rule" "cloudwatch_frequency" {
-  name                = "autospotting_frequency"
+  name                = "${module.label.id}_frequency"
   schedule_expression = "${var.lambda_run_frequency}"
 }
 
 resource "aws_cloudwatch_log_group" "log_group_autospotting" {
-  name              = "/aws/lambda/${module.aws_lambda_function.function_name}"
+  name              = "/aws/lambda/${module.label.id}"
   retention_in_days = 7
 }

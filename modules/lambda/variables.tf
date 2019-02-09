@@ -26,8 +26,15 @@ variable "autospotting_bidding_policy" {}
 variable "autospotting_regions_enabled" {}
 variable "autospotting_tag_filters" {}
 variable "autospotting_tag_filtering_mode" {}
+variable "autospotting_instance_termination_method" {}
 
 variable "lambda_tags" {
   description = "Tags to be applied to the Lambda function"
   type        = "map"
+}
+
+# Label configuration
+variable "label_context" {
+  type        = "map"
+  description = "Used to pass in label module context"
 }
