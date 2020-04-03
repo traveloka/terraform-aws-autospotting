@@ -15,27 +15,67 @@ See [https://github.com/autospotting/autospotting](https://github.com/autospotti
 
 ### Sources
 
-The autospotting module can be used from the Terraform Registry or directly from this repository.
+This module can be used from the Terraform Registry or directly from this repository. The AutoSpotting binary defaults to the latest nightly build hosted on S3.
 
-You can use the module with prebuilt binaries from the Terraform Registry:
-
-```hcl
-module "autospotting" {
-  source  = "cristim/autospotting/aws"
-  version = "0.0.9" # this version is subject to change
-}
-```
-
-You can also use the module from this repository, but you'll also need to provide a reference to the autospotting binaries:
+Using from the Terraform Registry:
 
 ```hcl
 module "autospotting" {
-  source         = "github.com/autospotting/terraform-aws-autospotting?ref=master"
-  lambda_zipname = "lambda.zip"
+  source  = "AutoSpotting/autospotting/aws"
+  # version = "0.1.2"
 }
 ```
 
-New releases of this module only work with Terraform 0.12 or newer.
+Using from this repository:
+
+```hcl
+module "autospotting" {
+  source = "github.com/autospotting/terraform-aws-autospotting?ref=master" # or ref=0.1.2, etc.
+}
+```
+
+Notes:
+
+- The official (nightly) AutoSpotting binary is hosted in the `cloudprowess` S3 bucket in AWS region `us-east-1`. When the source of the Lambda function is an S3 bucket, both the function and the bucket must be in the same region.
+
+  - If you are already using the AWS provider in the `us-east-1` region, no additional configuration is required:
+
+      ```hcl
+      provider "aws" {
+        region  = "us-east-1"
+        profile = "default"
+      }
+
+      module "autospotting" {
+        source = "github.com/autospotting/terraform-aws-autospotting"
+      }
+      ```
+
+  - If you are using the AWS provider in another region, you must either (1) alias another AWS provider in the `us-east-1` region, (2) copy the binary into an S3 bucket in the region you are already using, or (3) provide a local binary. Here, we demonstrate using an alias:
+
+      ```hcl
+      provider "aws" {
+        region  = "eu-central-1"
+        profile = "default"
+      }
+
+      provider "aws" {
+        alias   = "us"
+        region  = "us-east-1"
+        profile = "default"
+      }
+
+      module "autospotting" {
+        source = "github.com/autospotting/terraform-aws-autospotting"
+        providers = {
+          aws = aws.us
+        }
+      }
+      ```
+
+  - The Lambda function can run in any supported region
+
+- New releases of this module only work with Terraform 0.12 or newer.
 
 ### Setting variables
 
@@ -46,7 +86,6 @@ module "autospotting" {
   source                                = "github.com/autospotting/terraform-aws-autospotting"
   autospotting_regions_enabled          = "eu*,us*"
   autospotting_min_on_demand_percentage = "33.3"
-  lambda_zipname                        = "lambda.zip"
   lambda_memory_size                    = 1024
 }
 ```
@@ -57,7 +96,6 @@ Or you can pass them in on the command line:
  terraform apply \
    -var autospotting_regions_enabled="eu*,us*" \
    -var autospotting_min_on_demand_percentage="33.3" \
-   -var lambda_zipname="lambda.zip" \
    -var lambda_memory_size=1024
 ```
 
@@ -100,7 +138,6 @@ module "autospotting_storage" {
   label_name                          = "autospotting_storage"
   autospotting_allowed_instance_types = "i3.*"
   autospotting_tag_filters            = "spot-enabled=true,storage-optimized=true,"
-  lambda_zipname                      = "lambda.zip"
 }
 
 module "autospotting_dev_memory" {
@@ -109,7 +146,6 @@ module "autospotting_dev_memory" {
   label_environment                   = "dev"
   autospotting_allowed_instance_types = "r5*"
   autospotting_tag_filters            = "spot-enabled=true,memory-optimized=true,environment=dev,"
-  lambda_zipname                      = "lambda.zip"
 }
 ```
 
