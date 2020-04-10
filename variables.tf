@@ -94,6 +94,16 @@ EOF
   default = "opt-in"
 }
 
+variable "autospotting_license" {
+  description = <<EOF
+Autospotting License code. Allowed options are:
+'evaluation', 'I_am_supporting_it_on_Patreon',
+'I_contributed_to_development_within_the_last_year',
+'I_built_it_from_source_code'
+EOF
+  default     = "evaluation"
+}
+
 # Lambda configuration
 variable "lambda_zipname" {
   description = "Name of the archive, relative to the module"
@@ -141,7 +151,7 @@ variable "lambda_tags" {
 # Label configuration
 variable "label_context" {
   description = "Used to pass in label module context"
-  type        = object({
+  type = object({
     namespace           = string
     environment         = string
     stage               = string
@@ -154,7 +164,7 @@ variable "label_context" {
     additional_tag_map  = map(string)
     regex_replace_chars = string
   })
-  default     = {
+  default = {
     namespace           = ""
     environment         = ""
     stage               = ""
