@@ -5,14 +5,19 @@
       "Action": [
         "autoscaling:AttachInstances",
         "autoscaling:DescribeAutoScalingGroups",
+        "autoscaling:DescribeAutoScalingInstances",
         "autoscaling:DescribeLaunchConfigurations",
         "autoscaling:DescribeTags",
         "autoscaling:DetachInstances",
         "autoscaling:TerminateInstanceInAutoScalingGroup",
         "autoscaling:UpdateAutoScalingGroup",
+        "autoscaling:DescribeLifecycleHooks",
+        "cloudformation:Describe*",
         "ec2:CreateTags",
+        "ec2:DeleteTags",
         "ec2:DescribeInstanceAttribute",
         "ec2:DescribeInstances",
+        "ec2:DescribeLaunchTemplateVersions",
         "ec2:DescribeRegions",
         "ec2:DescribeSpotPriceHistory",
         "ec2:RunInstances",
@@ -21,8 +26,7 @@
         "iam:PassRole",
         "logs:CreateLogGroup",
         "logs:CreateLogStream",
-        "logs:PutLogEvents",
-        "cloudformation:DescribeStacks"
+        "logs:PutLogEvents"
       ],
       "Effect": "Allow",
       "Resource": "*"
